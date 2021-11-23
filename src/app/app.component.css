@@ -1,0 +1,12 @@
+div, span, button, li {
+    font-size: xx-large;
+}
+
+button {
+    font-weight: bold;
+    margin: 10px 5px;
+}
+
+button.reset {
+    color: crimson;
+}
