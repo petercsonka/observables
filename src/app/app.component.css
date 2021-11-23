@@ -1,5 +1,9 @@
 div, span, button, li {
-    font-size: xx-large;
+    font-size: x-large;
+}
+
+div {
+  margin-bottom: 14px;
 }
 
 button {

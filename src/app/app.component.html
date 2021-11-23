@@ -1,7 +1,4 @@
-<div>
-  Data stream: <span *ngFor="let value of dataStream">{{value}}, </span>
-</div>
-
+<h1>Filtering and Utility operator examples</h1>
 <button (click)="useFilter()">filter</button>
 <button (click)="useDistinctUntilChanged()">distinctUntilChanged</button>
 <button (click)="useDebounceTime()">debounceTime</button>
@@ -10,9 +7,13 @@
 <button (click)="useTake()">take</button>
 <button (click)="useTakeUntil()">takeUntil</button>
 <button (click)="useTap()">tap</button>
-<button (click)="reset()" class="reset">unsubscribe</button>
 <button (click)="reset()" class="reset">reset values</button>
 
-<div>List of emitted values {{description}}</div>
+<div [hidden]="hideDataStream">
+  Data stream: <span *ngFor="let value of dataStream">{{value}}, </span>
+</div>
+
+<div [hidden]="hideClickCounts">Total number of clicks events: {{clickCounts}}</div>
+<div [hidden]="hideDescription">List of emitted values {{description}}</div>
 <span *ngFor="let value of emittedValues"><span>{{value}}, </span></span>
 <!-- <div *ngFor="let value of emittedValues"><span>{{proba}}</span></div> -->
