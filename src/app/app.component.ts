@@ -8,7 +8,7 @@ import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distin
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  public dataStream = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  public dataStream: any[] = [];
   public emittedValues: any[] = [];
   public clickCounts = 0;
   public description = '';
@@ -19,30 +19,41 @@ export class AppComponent {
   private observable$!: Observable<number>;
   private subscription!: Subscription;
 
+  private readonly defaultDataStream = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  private readonly unorderedDataStream = [10, 2, 2, 4, 2, 6, 8, 8, 8, 10];
+  private readonly filterDescription = '(using the filter operator - only the even numbers will be emitted):';
+  private readonly firstDescription = '(using the first operator - only the first number will be emitted):';
+  private readonly distinctUntilChangedDescription = '(using the distinctUntilChanged operator - emits value only when the current value is different than the last one):';
+  private readonly takeDescription = '(using the take operator - only the first four numbers will be emitted):';
+  private readonly takeUntilDescription = '(using the takeUntil operator - values will be emitted until the first double click):'
+  private readonly debounceTimeDescription = '(using the debounceTime operator - emits the latest value of the source after 2000 ms passed without other source emission (click event)):'
+  private readonly throttleTimeDescription = '(using the throttleTime operator - emits a value from the source, then ignores source values for 2000 ms, then repeats this process):';
+  private readonly tapDescription = '(using the tap operator - every number will be emitted, but they will be also logged to the console):';
+
+
   //Filtering operators
   public useFilter(): void {
-    this.setupExecution('(using the filter operator - only the even numbers will be emitted):');
+    this.setupExecution(this.filterDescription, this.defaultDataStream);
     this.observable$.pipe(filter((value: number) => value % 2 === 0)).subscribe((value: number) => this.emittedValues.push(value));
   }
   public useFirst(): void {
-    this.setupExecution('(using the first operator - only the first number will be emitted):');
+    this.setupExecution(this.firstDescription, this.defaultDataStream);
     this.observable$.pipe(first()).subscribe((value: number) => this.emittedValues.push(value));
   }
 
   public useDistinctUntilChanged(): void {
-    this.setupExecution('(using the distinctUntilChanged operator - emits value only when the current value is different than the last one):');
-    this.dataStream = [10, 2, 2, 4, 2, 6, 8, 8, 8, 10];
+    this.setupExecution(this.distinctUntilChangedDescription, this.unorderedDataStream);
     this.observable$.pipe(distinctUntilChanged()).subscribe((value: number) => this.emittedValues.push(value));
   }
 
   public useTake(): void {
-    this.setupExecution('(using the take operator - only the first four numbers will be emitted):');
+    this.setupExecution(this.takeDescription, this.defaultDataStream);
     this.observable$.pipe(take(4)).subscribe((value: number) => this.emittedValues.push(value));
   }
 
   public useTakeUntil(): void {
     this.reset();
-    this.setDescription('(using the takeUntil operator - values will be emitted until the first double click):');
+    this.setDescription(this.takeUntilDescription);
     this.setElementVisibility(true, false, true);
     //const source = this.createIntervalObservable(1000, 0);
     const source$ = interval(1000);
@@ -53,7 +64,7 @@ export class AppComponent {
 
   public useDebounceTime(): void {
     this.reset();
-    this.setDescription('(using the debounceTime operator - emits the latest value of the source after 2000 ms passed without other source emission (click event)):');
+    this.setDescription(this.debounceTimeDescription);
     this.setElementVisibility(true, false, false);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), debounceTime(2000));
@@ -62,7 +73,7 @@ export class AppComponent {
 
   public useThrottleTime(): void {
     this.reset();
-    this.setDescription('(using the throttleTime operator - emits a value from the source, then ignores source values for 2000 ms, then repeats this process):');
+    this.setDescription(this.throttleTimeDescription);
     this.setElementVisibility(true, false, false);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), throttleTime(2000));
@@ -71,7 +82,7 @@ export class AppComponent {
 
   //Utility operators
   public useTap(): void {
-    this.setupExecution('(using the tap operator - every number will be emitted, but they will be also logged to the console):');
+    this.setupExecution(this.tapDescription, this.defaultDataStream);
     this.observable$.pipe(tap((value: number) => console.log(value))).subscribe((value: number) => this.emittedValues.push(value));
   }
 
@@ -85,11 +96,11 @@ export class AppComponent {
     this.clickCounts = 0;
   }
 
-  private setupExecution(description: string): void {
+  private setupExecution(description: string, dataStream: number[]): void {
     this.reset();
     this.setDescription(description);
+    this.dataStream = dataStream;
     this.setElementVisibility(false, false, true);
-    this.dataStream = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     this.observable$ = from(this.dataStream);
   }
 
