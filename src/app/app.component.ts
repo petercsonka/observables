@@ -68,7 +68,7 @@ export class AppComponent {
     this.setElementVisibility(true, false, false);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), debounceTime(2000));
-    this.subscription = result.subscribe(x => this.emittedValues.push(x.type));
+    this.subscription = result.subscribe(x => this.emittedValues.push(x.type+ `(${this.clickCounts}.)`));
   }
 
   public useThrottleTime(): void {
@@ -77,7 +77,7 @@ export class AppComponent {
     this.setElementVisibility(true, false, false);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), throttleTime(2000));
-    this.subscription = result.subscribe(x => this.emittedValues.push(x.type));
+    this.subscription = result.subscribe(x => this.emittedValues.push(x.type+ `(${this.clickCounts}.)`));
   }
 
   //Utility operators

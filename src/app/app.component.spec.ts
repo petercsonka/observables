@@ -10,17 +10,26 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
+  it('test', () => {
+    var test = '';
+    if(test) {
+      console.log('fine');
+    } else {
+      console.log('not fine');
+    }
+  });
+
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'observables'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('observables');
-  });
+  // it(`should have as title 'observables'`, () => {
+  //   const fixture = TestBed.createComponent(AppComponent);
+  //   const app = fixture.componentInstance;
+  //   expect(app.title).toEqual('observables');
+  // });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
