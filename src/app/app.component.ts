@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ConnectableObservable, from, fromEvent, interval, Observable, Subject, Subscription } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, ConnectableObservable, from, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
 import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, multicast, refCount } from 'rxjs/operators';
 
 @Component({
@@ -32,6 +32,9 @@ export class AppComponent {
 
   private readonly observableDescription = '(using Observable - unicast execution):';
   private readonly subjectDescription = '(using Subject - multicast execution):';
+  private readonly behaviorSubjectDescription = '(using BehaviorSubject):';
+  private readonly replaySubjectDescription = '(using ReplaySubject - buffers the last 3 values for new subscribers):';
+  private readonly asyncSubjectDescription = '(using AsyncSubject - emits only the last value to its observers, and only when the execution completes):';
 
 
   //Filtering operators
@@ -111,13 +114,13 @@ export class AppComponent {
     this.description = description;
   }
 
-  private setElementVisibility(hideDataStream: boolean, hideDescription: boolean, hideClickCounts: boolean) {
+  private setElementVisibility(hideDataStream: boolean, hideDescription: boolean, hideClickCounts: boolean): void {
     this.hideDataStream = hideDataStream;
     this.hideDescription = hideDescription;
     this.hideClickCounts = hideClickCounts;
   }
 
-  public useObservable() {
+  public useObservable(): void {
     this.reset();
     this.setDescription(this.observableDescription);
     this.setElementVisibility(true, false, true);
@@ -147,7 +150,7 @@ export class AppComponent {
     }, 3100);
   }
 
-  public useSubject() {
+  public useSubject(): void {
     this.reset();
     this.setDescription(this.subjectDescription);
     this.setElementVisibility(true, false, true);
@@ -185,7 +188,11 @@ export class AppComponent {
     }, 3100);
   }
 
-  public useSubjectWithRefCount() {
+  public useSubjectWithRefCount(): void {
+    this.reset();
+    this.setDescription(this.subjectDescription);
+    this.setElementVisibility(true, false, true);
+
     let subscription1: Subscription;
     let subscription2: Subscription;
 
@@ -211,6 +218,75 @@ export class AppComponent {
     setTimeout(() => {
       subscription2.unsubscribe();
     }, 3000);
+  }
+
+  public useBehaviorSubject(): void {
+    this.reset();
+    this.setDescription(this.behaviorSubjectDescription);
+    this.setElementVisibility(true, false, true);
+
+    const subject = new BehaviorSubject(0); // 0 is the initial value
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerA: ${v}`)
+    });
+
+    subject.next(1);
+    subject.next(2);
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerB: ${v}`)
+    });
+
+    subject.next(3);
+    this.emittedValues.push(`current value of the BehaviorSubject: ${subject.value}`)
+  }
+
+  public useReplaySubject(): void {
+    this.reset();
+    this.setDescription(this.replaySubjectDescription);
+    this.setElementVisibility(true, false, true);
+
+    const subject = new ReplaySubject(3); // buffer 3 values for new subscribers
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerA: ${v}`)
+    });
+
+    subject.next(1);
+    subject.next(2);
+    subject.next(3);
+    subject.next(4);
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerB: ${v}`)
+    });
+
+    subject.next(5);
+  }
+
+  public useAsyncSubject(): void {
+    this.reset();
+    this.setDescription(this.asyncSubjectDescription);
+    this.setElementVisibility(true, false, true);
+
+    const subject = new AsyncSubject();
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerA: ${v}`)
+    });
+
+    subject.next(1);
+    subject.next(2);
+    subject.next(3);
+    subject.next(4);
+
+    subject.subscribe({
+      next: (v) => this.emittedValues.push(`observerB: ${v}`)
+    });
+
+    subject.next(5);
+    subject.complete();
   }
 
   private createIntervalObservable(interval: number, emittedValue: number): Observable<number> {

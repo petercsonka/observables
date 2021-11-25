@@ -11,11 +11,14 @@
 <button (click)="useDebounceTime()">debounceTime</button>
 <button (click)="useThrottleTime()">throttleTime</button>
 <button (click)="useTap()">tap</button>
-
 <br>
+
 <span>Subject examples - </span>
 <button (click)="useObservable()">Observable (unicast)</button>
 <button (click)="useSubject()">Subject (multicast)</button>
+<button (click)="useBehaviorSubject()">BehaviorSubject (multicast)</button>
+<button (click)="useReplaySubject()">ReplaySubject (multicast)</button>
+<button (click)="useAsyncSubject()">AsyncSubject (multicast)</button>
 <br>
 
 <div [hidden]="hideDataStream">
