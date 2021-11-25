@@ -10,15 +10,6 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
-  it('test', () => {
-    var test = '';
-    if(test) {
-      console.log('fine');
-    } else {
-      console.log('not fine');
-    }
-  });
-
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;

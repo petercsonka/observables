@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { from, fromEvent, interval, Observable, Subscription } from 'rxjs';
-import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged } from 'rxjs/operators';
+import { ConnectableObservable, from, fromEvent, interval, Observable, Subject, Subscription } from 'rxjs';
+import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, multicast, refCount } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +29,9 @@ export class AppComponent {
   private readonly debounceTimeDescription = '(using the debounceTime operator - emits the latest value of the source after 2000 ms passed without other source emission (click event)):'
   private readonly throttleTimeDescription = '(using the throttleTime operator - emits a value from the source, then ignores source values for 2000 ms, then repeats this process):';
   private readonly tapDescription = '(using the tap operator - every number will be emitted, but they will be also logged to the console):';
+
+  private readonly observableDescription = '(using Observable - unicast execution):';
+  private readonly subjectDescription = '(using Subject - multicast execution):';
 
 
   //Filtering operators
@@ -114,6 +117,101 @@ export class AppComponent {
     this.hideClickCounts = hideClickCounts;
   }
 
+  public useObservable() {
+    this.reset();
+    this.setDescription(this.observableDescription);
+    this.setElementVisibility(true, false, true);
+
+    let subscription1: Subscription;
+    let subscription2: Subscription;
+    const source = interval(500);
+
+    subscription1 = source.subscribe({
+      //next: (v: any) => console.log(`observerA: ${v}`)
+      next: (v: any) => this.emittedValues.push(`observerA: ${v}`)
+    });
+
+    setTimeout(() => {
+      subscription2 = source.subscribe({
+        //next: (v: any) => console.log(`observerB: ${v}`)
+        next: (v: any) => this.emittedValues.push(`observerB: ${v}`)
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      subscription1.unsubscribe();
+    }, 2000);
+
+    setTimeout(() => {
+      subscription2.unsubscribe();
+    }, 3100);
+  }
+
+  public useSubject() {
+    this.reset();
+    this.setDescription(this.subjectDescription);
+    this.setElementVisibility(true, false, true);
+
+    let subscription1: Subscription;
+    let subscription2: Subscription;
+    let subscriptionConnect: Subscription;
+
+    const source = interval(500);
+    const subject = new Subject();
+    const multicasted = source.pipe(multicast(subject)) as ConnectableObservable<unknown>;
+
+    subscription1 = multicasted.subscribe({
+      //next: (v: any) => console.log(`observerA: ${v}`)
+      next: (v: any) => this.emittedValues.push(`observerA: ${v}`)
+    });
+    // We should call `connect()` here, because the first subscriber to `multicasted` is interested in consuming values.
+    subscriptionConnect = multicasted.connect();
+
+    setTimeout(() => {
+      subscription2 = multicasted.subscribe({
+        //next: (v: any) => console.log(`observerB: ${v}`)
+        next: (v: any) => this.emittedValues.push(`observerB: ${v}`)
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      subscription1.unsubscribe();
+    }, 2000);
+
+    // We should unsubscribe the shared Observable execution here, because `multicasted` would have no more subscribers after this.
+    setTimeout(() => {
+      subscription2.unsubscribe();
+      subscriptionConnect.unsubscribe(); // for the shared Observable execution
+    }, 3100);
+  }
+
+  public useSubjectWithRefCount() {
+    let subscription1: Subscription;
+    let subscription2: Subscription;
+
+    const source = interval(500);
+    const subject = new Subject();
+    const refCounted = source.pipe(multicast(subject), refCount());
+
+    subscription1 = refCounted.subscribe({
+      //next: (v: any) => console.log(`observerA: ${v}`)
+      next: (v: any) => this.emittedValues.push(`observerA: ${v}`)
+    });
+
+    setTimeout(() => {
+      subscription2 = refCounted.subscribe({
+        //next: (v: any) => console.log(`observerB: ${v}`)
+        next: (v: any) => this.emittedValues.push(`observerB: ${v}`)
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      subscription1.unsubscribe();
+    }, 2000);
+    setTimeout(() => {
+      subscription2.unsubscribe();
+    }, 3000);
+  }
 
   private createIntervalObservable(interval: number, emittedValue: number): Observable<number> {
     return new Observable<number>(observer => {

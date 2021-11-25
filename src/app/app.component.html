@@ -1,4 +1,8 @@
-<h1>Filtering and Utility operator examples</h1>
+<button (click)="reset()" class="reset">reset values</button>
+<br>
+
+<!-- <h1>Filtering and Utility operator examples</h1> -->
+<span>Filtering and Utility operator examples - </span>
 <button (click)="useFilter()">filter</button>
 <button (click)="useFirst()">first</button>
 <button (click)="useDistinctUntilChanged()">distinctUntilChanged</button>
@@ -7,7 +11,12 @@
 <button (click)="useDebounceTime()">debounceTime</button>
 <button (click)="useThrottleTime()">throttleTime</button>
 <button (click)="useTap()">tap</button>
-<button (click)="reset()" class="reset">reset values</button>
+
+<br>
+<span>Subject examples - </span>
+<button (click)="useObservable()">Observable (unicast)</button>
+<button (click)="useSubject()">Subject (multicast)</button>
+<br>
 
 <div [hidden]="hideDataStream">
   Data stream: <span *ngFor="let value of dataStream">{{value}}, </span>
@@ -15,4 +24,5 @@
 
 <div [hidden]="hideClickCounts">Total number of clicks events: {{clickCounts}}</div>
 <div [hidden]="hideDescription">List of emitted values {{description}}</div>
-<span *ngFor="let value of emittedValues"><span>{{value}}, </span></span>
+<!-- <span *ngFor="let value of emittedValues">{{value}}, </span> -->
+<div *ngFor="let value of emittedValues">{{value}}</div>
