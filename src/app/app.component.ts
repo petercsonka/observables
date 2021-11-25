@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { AsyncSubject, BehaviorSubject, ConnectableObservable, from, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
-import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, multicast, refCount } from 'rxjs/operators';
+import { AsyncSubject, BehaviorSubject, from, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription, connectable } from 'rxjs';
+import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, share } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -160,18 +160,17 @@ export class AppComponent {
     let subscriptionConnect: Subscription;
 
     const source = interval(500);
-    const subject = new Subject();
-    const multicasted = source.pipe(multicast(subject)) as ConnectableObservable<unknown>;
+    const connectableObservable = connectable(source, { connector: () => new Subject() });
 
-    subscription1 = multicasted.subscribe({
+    subscription1 = connectableObservable.subscribe({
       //next: (v: any) => console.log(`observerA: ${v}`)
       next: (v: any) => this.emittedValues.push(`observerA: ${v}`)
     });
     // We should call `connect()` here, because the first subscriber to `multicasted` is interested in consuming values.
-    subscriptionConnect = multicasted.connect();
+    subscriptionConnect = connectableObservable.connect();
 
     setTimeout(() => {
-      subscription2 = multicasted.subscribe({
+      subscription2 = connectableObservable.subscribe({
         //next: (v: any) => console.log(`observerB: ${v}`)
         next: (v: any) => this.emittedValues.push(`observerB: ${v}`)
       });
@@ -197,16 +196,15 @@ export class AppComponent {
     let subscription2: Subscription;
 
     const source = interval(500);
-    const subject = new Subject();
-    const refCounted = source.pipe(multicast(subject), refCount());
+    const multicastedObservable = source.pipe(share({ connector: () => new Subject()}));
 
-    subscription1 = refCounted.subscribe({
+    subscription1 = multicastedObservable.subscribe({
       //next: (v: any) => console.log(`observerA: ${v}`)
       next: (v: any) => this.emittedValues.push(`observerA: ${v}`)
     });
 
     setTimeout(() => {
-      subscription2 = refCounted.subscribe({
+      subscription2 = multicastedObservable.subscribe({
         //next: (v: any) => console.log(`observerB: ${v}`)
         next: (v: any) => this.emittedValues.push(`observerB: ${v}`)
       });
