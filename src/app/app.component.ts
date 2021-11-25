@@ -23,7 +23,7 @@ export class AppComponent {
   private readonly unorderedDataStream = [10, 2, 2, 4, 2, 6, 8, 8, 8, 10];
   private readonly filterDescription = '(using the filter operator - only the even numbers will be emitted):';
   private readonly firstDescription = '(using the first operator - only the first number will be emitted):';
-  private readonly distinctUntilChangedDescription = '(using the distinctUntilChanged operator - emits value only when the current value is different than the last one):';
+  private readonly distinctUntilChangedDescription = '(using the distinctUntilChanged operator - only emits the current value when it is different than the previous one):';
   private readonly takeDescription = '(using the take operator - only the first four numbers will be emitted):';
   private readonly takeUntilDescription = '(using the takeUntil operator - values will be emitted until the first double click):'
   private readonly debounceTimeDescription = '(using the debounceTime operator - emits the latest value of the source after 2000 ms passed without other source emission (click event)):'
