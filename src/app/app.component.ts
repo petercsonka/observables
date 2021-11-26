@@ -120,7 +120,7 @@ export class AppComponent {
     this.hideClickCounts = hideClickCounts;
   }
 
-  public useObservable(): void {
+  public useUnicastObservable(): void {
     this.reset();
     this.setDescription(this.observableDescription);
     this.setElementVisibility(true, false, true);
@@ -150,7 +150,7 @@ export class AppComponent {
     }, 3100);
   }
 
-  public useSubject(): void {
+  public useMulticastObservable(): void {
     this.reset();
     this.setDescription(this.subjectDescription);
     this.setElementVisibility(true, false, true);
@@ -187,7 +187,7 @@ export class AppComponent {
     }, 3100);
   }
 
-  public useSubjectWithRefCount(): void {
+  public useShareOperator(): void {
     this.reset();
     this.setDescription(this.subjectDescription);
     this.setElementVisibility(true, false, true);
