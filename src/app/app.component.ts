@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { AsyncSubject, BehaviorSubject, from, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription, connectable } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, from, merge, race, combineLatest, forkJoin, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription, connectable, of } from 'rxjs';
 import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, share } from 'rxjs/operators';
+import * as Rx from "rxjs";
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,10 @@ export class AppComponent {
   public hideDataStream = true;
   public hideClickCounts = true;
   public hideDescription = true;
+  public window2: any;
+  public sub: any;
+  public coldHidden = true;
+  public hotHidden = true;
 
   private observable$!: Observable<number>;
   private subscription!: Subscription;
@@ -36,6 +41,116 @@ export class AppComponent {
   private readonly replaySubjectDescription = '(using ReplaySubject - buffers the last 3 values for new subscribers):';
   private readonly asyncSubjectDescription = '(using AsyncSubject - emits only the last value to its observers, and only when the execution completes):';
 
+  private readonly ofDescription = '(using the of operator - sources can be turned into an Observable):';
+  private readonly fromDescription = '(using the from operator - any Array, Promise or Iterable can be turned into an Observable):';
+
+  private readonly combineLatestDescription = '(using combineLatest operator - two or more sources can be combined into one observable):';
+  private readonly forkJoinDescription = '(using forkJoin operator - two or more sources can be forked together on completion):';
+  private readonly mergeDescription = '(using merge operator - two or more sources can be merged together into one observable):';
+  private readonly raceDescription = '(using race operator - a "winner" source observable can be mirrored out of several observables):'
+
+
+  //Hot and cold observable examples
+  public showColdObservable(){
+    this.coldHidden = false;
+    const observable = Rx.Observable.create((observer: { next: (arg0: number) => void; }) => {
+      observer.next(Math.random());
+    });
+    // subscription 1
+    observable.subscribe((value: number) => this.emittedValues.push(value));
+    // subscription 2
+    observable.subscribe((value: number) => this.emittedValues.push(value));
+  }
+
+  public showHotObservable(){
+    this.hotHidden = false;
+    const random = Math.random()
+    const observable = Rx.Observable.create((observer: { next: (arg0: number) => void; }) => {
+        observer.next(random);
+    });
+    // subscription 1
+    observable.subscribe((value: number) => this.emittedValues.push(value));
+    // subscription 2
+    observable.subscribe((value: number) => this.emittedValues.push(value));
+
+  }
+
+  //Creation operators
+  public useOf(): void{
+    this.reset();
+    this.dataStream = this.defaultDataStream;
+    this.setDescription(this.ofDescription);
+    this.setElementVisibility(false,false,false);
+    this.observable$ = of(this.dataStream) as any;
+    this.observable$.pipe().subscribe((value: number) => this.emittedValues.push(value));
+  }
+
+  public useFrom(): void{
+    this.reset();
+    this.dataStream = this.defaultDataStream;
+    this.setDescription(this.ofDescription);
+    this.setElementVisibility(false,false,false);
+    this.observable$ = from(this.dataStream);
+    this.observable$.pipe().subscribe((value: number) => this.emittedValues.push(value));
+  }
+
+  //Join creation operators
+  public useCombineLatest(): void{
+    this.setDescription(this.combineLatestDescription);
+    this.dataStream = this.defaultDataStream;
+    this.setElementVisibility(false,false,true);
+
+    const firstTimer = Rx.timer(0, 1000);
+    const secondTimer = Rx.timer(0, 2500);
+    const combinedTimers = combineLatest([firstTimer, secondTimer]);
+    this.sub = combinedTimers.subscribe(value =>  this.emittedValues.push(value));
+
+    setTimeout(() => {
+      this.sub.unsubscribe();
+    }, 10000)
+  }
+  public useForkJoin(): void{
+    this.setDescription(this.forkJoinDescription);
+    this.setElementVisibility(false,false,true);
+    this.dataStream = this.defaultDataStream;
+
+    const timer1 = interval(500).pipe(take(5));
+    const timer2 = interval(1000).pipe(take(3));
+    const forkJoined = forkJoin([timer1, timer2]);
+    this.sub = forkJoined.subscribe(value =>  this.emittedValues.push(value));
+
+    setTimeout(() => {
+      this.sub.unsubscribe();
+    }, 7000)
+  }
+  public useMerge(): void{
+    this.setDescription(this.mergeDescription);
+    this.setElementVisibility(false,false,true);
+    this.dataStream = this.defaultDataStream;
+
+    const timer1 = Rx.timer(0, 1000);
+    const timer2 = Rx.timer(0, 2000);
+    const merged = merge(timer1, timer2);
+    this.sub = merged.subscribe(value =>  this.emittedValues.push(value));
+
+    setTimeout(() => {
+      this.sub.unsubscribe();
+    }, 7000)
+  }
+  public useRace(): void{
+    this.setDescription(this.raceDescription);
+    this.setElementVisibility(false,false,true);
+    this.dataStream = this.defaultDataStream;
+
+    const timer1 = Rx.timer(1000, 1000);
+    const timer2 = Rx.timer(0, 2000);
+    const raced = race(timer1, timer2);
+    this.sub = raced.subscribe(value =>  this.emittedValues.push(value));
+
+    setTimeout(() => {
+      this.sub.unsubscribe();
+    }, 7000)
+  }
 
   //Filtering operators
   public useFilter(): void {
@@ -93,6 +208,8 @@ export class AppComponent {
   }
 
   public reset(): void {
+    this.hotHidden = true; this.coldHidden = true;
+    this.sub.unsubscribe();
     if(this.subscription) {
       this.subscription.unsubscribe();
     }

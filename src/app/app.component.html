@@ -1,7 +1,18 @@
 <button (click)="reset()" class="reset">reset values</button>
 <br>
 
-<!-- <h1>Filtering and Utility operator examples</h1> -->
+<span>Creation operator examples</span>
+<button (click)="useOf()">of</button>
+<button (click)="useFrom()">from</button>
+<br>
+
+<span>Join creation operator examples</span>
+<button (click)="useCombineLatest()">combineLatest</button>
+<button (click)="useForkJoin()">forkJoin</button>
+<button (click)="useMerge()">merge</button>
+<button (click)="useRace()">race</button>
+<br>
+
 <span>Filtering and Utility operator examples - </span>
 <button (click)="useFilter()">filter</button>
 <button (click)="useFirst()">first</button>
@@ -11,6 +22,10 @@
 <button (click)="useDebounceTime()">debounceTime</button>
 <button (click)="useThrottleTime()">throttleTime</button>
 <button (click)="useTap()">tap</button>
+<br>
+<span>Hot and cold observable examples: - </span>
+<button (click)="showColdObservable()">Cold observable</button>
+<button (click)="showHotObservable()">Hot observable</button>
 <br>
 
 <span>Subject examples - </span>
@@ -29,3 +44,18 @@
 <div [hidden]="hideDescription">List of emitted values {{description}}</div>
 <!-- <span *ngFor="let value of emittedValues">{{value}}, </span> -->
 <div *ngFor="let value of emittedValues">{{value}}</div>
+
+<div [hidden]="coldHidden">
+  <p>Cold Observable</p>
+  <div>
+   <p *ngFor="let value of dataStream">{{value}}</p>
+   </div>
+</div>
+<div [hidden]="hotHidden">
+  <p>Hot Observable</p>
+  <div>
+    <p *ngFor="let value of dataStream">{{value}}</p>
+    </div>
+</div>
+
+<div></div>
