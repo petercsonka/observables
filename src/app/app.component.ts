@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
-import { AsyncSubject, BehaviorSubject, from, merge, race, combineLatest, forkJoin, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription, connectable, of } from 'rxjs';
-import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, share } from 'rxjs/operators';
-import * as Rx from "rxjs";
-
+import { AsyncSubject, BehaviorSubject, from, fromEvent, interval, Observable, ReplaySubject, Subject, Subscription, connectable, merge, race, forkJoin, combineLatest, of } from 'rxjs';
+import { filter, first, take, tap, takeUntil, debounceTime, throttleTime, distinctUntilChanged, share, concatMap, map, delay, mergeMap, switchMap } from 'rxjs/operators';
+import * as Rx from 'rxjs';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -10,10 +9,12 @@ import * as Rx from "rxjs";
 })
 export class AppComponent {
   public dataStream: any[] = [];
+  public dataStream2: any[] = [];
   public emittedValues: any[] = [];
   public clickCounts = 0;
   public description = '';
   public hideDataStream = true;
+  public hideDataStream2 = true;
   public hideClickCounts = true;
   public hideDescription = true;
   public window2: any;
@@ -34,6 +35,11 @@ export class AppComponent {
   private readonly debounceTimeDescription = '(using the debounceTime operator - emits the latest value of the source after 2000 ms passed without other source emission (click event)):'
   private readonly throttleTimeDescription = '(using the throttleTime operator - emits a value from the source, then ignores source values for 2000 ms, then repeats this process):';
   private readonly tapDescription = '(using the tap operator - every number will be emitted, but they will be also logged to the console):';
+
+  private readonly mapDescription = '(using the map operator - every number will be multiplied by 2):';
+  private readonly concatMapDescription = '(using the concatMap operator - concatenate numbers with strings (wait for completion)):';
+  private readonly mergeMapDescription = '(using the mergeMap operator - concatenate numbers with strings (doesn\'t wait for completion)):';
+  private readonly switchMapDescription = '(using the switchMap operator - concatenate numbers with strings (emit the most recently projected Observable)):';
 
   private readonly observableDescription = '(using Observable - unicast execution):';
   private readonly subjectDescription = '(using Subject - multicast execution):';
@@ -80,7 +86,7 @@ export class AppComponent {
     this.reset();
     this.dataStream = this.defaultDataStream;
     this.setDescription(this.ofDescription);
-    this.setElementVisibility(false,false,false);
+    this.setElementVisibility(false,false,false,false);
     this.observable$ = of(this.dataStream) as any;
     this.observable$.pipe().subscribe((value: number) => this.emittedValues.push(value));
   }
@@ -89,7 +95,7 @@ export class AppComponent {
     this.reset();
     this.dataStream = this.defaultDataStream;
     this.setDescription(this.ofDescription);
-    this.setElementVisibility(false,false,false);
+    this.setElementVisibility(false,false,false,false);
     this.observable$ = from(this.dataStream);
     this.observable$.pipe().subscribe((value: number) => this.emittedValues.push(value));
   }
@@ -98,12 +104,12 @@ export class AppComponent {
   public useCombineLatest(): void{
     this.setDescription(this.combineLatestDescription);
     this.dataStream = this.defaultDataStream;
-    this.setElementVisibility(false,false,true);
+    this.setElementVisibility(false,false,true,false);
 
     const firstTimer = Rx.timer(0, 1000);
     const secondTimer = Rx.timer(0, 2500);
     const combinedTimers = combineLatest([firstTimer, secondTimer]);
-    this.sub = combinedTimers.subscribe(value =>  this.emittedValues.push(value));
+    this.sub = combinedTimers.subscribe((value: any) =>  this.emittedValues.push(value));
 
     setTimeout(() => {
       this.sub.unsubscribe();
@@ -111,7 +117,7 @@ export class AppComponent {
   }
   public useForkJoin(): void{
     this.setDescription(this.forkJoinDescription);
-    this.setElementVisibility(false,false,true);
+    this.setElementVisibility(false,false,true,false);
     this.dataStream = this.defaultDataStream;
 
     const timer1 = interval(500).pipe(take(5));
@@ -125,13 +131,13 @@ export class AppComponent {
   }
   public useMerge(): void{
     this.setDescription(this.mergeDescription);
-    this.setElementVisibility(false,false,true);
+    this.setElementVisibility(false,false,true,false);
     this.dataStream = this.defaultDataStream;
 
     const timer1 = Rx.timer(0, 1000);
     const timer2 = Rx.timer(0, 2000);
     const merged = merge(timer1, timer2);
-    this.sub = merged.subscribe(value =>  this.emittedValues.push(value));
+    this.sub = merged.subscribe((value: any) =>  this.emittedValues.push(value));
 
     setTimeout(() => {
       this.sub.unsubscribe();
@@ -139,13 +145,13 @@ export class AppComponent {
   }
   public useRace(): void{
     this.setDescription(this.raceDescription);
-    this.setElementVisibility(false,false,true);
+    this.setElementVisibility(false,false,true,false);
     this.dataStream = this.defaultDataStream;
 
     const timer1 = Rx.timer(1000, 1000);
     const timer2 = Rx.timer(0, 2000);
     const raced = race(timer1, timer2);
-    this.sub = raced.subscribe(value =>  this.emittedValues.push(value));
+    this.sub = raced.subscribe((value: any) =>  this.emittedValues.push(value));
 
     setTimeout(() => {
       this.sub.unsubscribe();
@@ -175,7 +181,7 @@ export class AppComponent {
   public useTakeUntil(): void {
     this.reset();
     this.setDescription(this.takeUntilDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
     //const source = this.createIntervalObservable(1000, 0);
     const source$ = interval(1000);
     const clicks$ = fromEvent(document, 'dblclick');
@@ -186,7 +192,7 @@ export class AppComponent {
   public useDebounceTime(): void {
     this.reset();
     this.setDescription(this.debounceTimeDescription);
-    this.setElementVisibility(true, false, false);
+    this.setElementVisibility(true, false, false, true);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), debounceTime(2000));
     this.subscription = result.subscribe(x => this.emittedValues.push(x.type+ `(${this.clickCounts}.)`));
@@ -195,7 +201,7 @@ export class AppComponent {
   public useThrottleTime(): void {
     this.reset();
     this.setDescription(this.throttleTimeDescription);
-    this.setElementVisibility(true, false, false);
+    this.setElementVisibility(true, false, false, true);
     const clicks = fromEvent(document, 'click');
     const result = clicks.pipe(tap((x) => this.clickCounts++), throttleTime(2000));
     this.subscription = result.subscribe(x => this.emittedValues.push(x.type+ `(${this.clickCounts}.)`));
@@ -207,23 +213,74 @@ export class AppComponent {
     this.observable$.pipe(tap((value: number) => console.log(value))).subscribe((value: number) => this.emittedValues.push(value));
   }
 
+  // Transformation operators
+  public useMap(): void {
+    this.setupExecution(this.mapDescription, this.defaultDataStream);
+    this.subscription = this.observable$.pipe(
+      map((value: number) => 2 * value)
+    ).subscribe((value: number) => this.emittedValues.push(value));
+  }
+
+  public useConcatMap(): void {
+    const data1 = [1, 2, 3, 4];
+    const data2 = ['A', 'B', 'C'];
+    this.setupExecution(this.concatMapDescription, data1, data2);
+
+    let source2$ = from(data2).pipe(
+      concatMap( item => of(item).pipe ( delay( 500 ) )))
+
+      this.subscription = this.observable$.pipe(
+      concatMap(x => source2$.pipe(map(y => x + y)))
+    ).subscribe((value: string) => this.emittedValues.push(value));
+  }
+
+  public useMergeMap(): void {
+    const data1 = [1, 2, 3, 4];
+    const data2 = ['A', 'B', 'C'];
+    this.setupExecution(this.mergeMapDescription, data1, data2);
+
+    let source2$ = from(data2).pipe(
+      concatMap( item => of(item).pipe ( delay( 1000 ) )))
+
+    this.subscription = this.observable$.pipe(
+      mergeMap(x => source2$.pipe(map(y => x + y)))
+    ).subscribe((value: string) => this.emittedValues.push(value));
+  }
+
+  public useSwitchMap(): void {
+    const data1 = [1, 2];
+    const data2 = ['A', 'B', 'C'];
+    this.setupExecution(this.switchMapDescription, data1, data2);
+
+    let source1$ = from(data1).pipe(
+      concatMap( item => of(item).pipe ( delay( 1000 ) )))
+
+    let source2$ = from(data2).pipe(
+      concatMap( item => of(item).pipe ( delay( 600 ) )))
+
+    this.subscription = source1$.pipe(
+      switchMap(x => source2$.pipe(map(y => x + y)))
+    ).subscribe((value: string) => this.emittedValues.push(value));
+  }
+
   public reset(): void {
     this.hotHidden = true; this.coldHidden = true;
     this.sub.unsubscribe();
     if(this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.setElementVisibility(true, true, true);
+    this.setElementVisibility(true, true, true, true);
     this.emittedValues = [];
     this.description = '';
     this.clickCounts = 0;
   }
 
-  private setupExecution(description: string, dataStream: number[]): void {
+  private setupExecution(description: string, dataStream: number[], dataStream2?: any[]): void {
     this.reset();
     this.setDescription(description);
     this.dataStream = dataStream;
-    this.setElementVisibility(false, false, true);
+    this.dataStream2 = dataStream2!;
+    this.setElementVisibility(false, false, true, dataStream2 ? false : true);
     this.observable$ = from(this.dataStream);
   }
 
@@ -231,8 +288,9 @@ export class AppComponent {
     this.description = description;
   }
 
-  private setElementVisibility(hideDataStream: boolean, hideDescription: boolean, hideClickCounts: boolean): void {
+  private setElementVisibility(hideDataStream: boolean, hideDescription: boolean, hideClickCounts: boolean, hideDataStream2: boolean): void {
     this.hideDataStream = hideDataStream;
+    this.hideDataStream2 = hideDataStream2;
     this.hideDescription = hideDescription;
     this.hideClickCounts = hideClickCounts;
   }
@@ -240,7 +298,7 @@ export class AppComponent {
   public useUnicastObservable(): void {
     this.reset();
     this.setDescription(this.observableDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     let subscription1: Subscription;
     let subscription2: Subscription;
@@ -270,7 +328,7 @@ export class AppComponent {
   public useMulticastObservable(): void {
     this.reset();
     this.setDescription(this.subjectDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     let subscription1: Subscription;
     let subscription2: Subscription;
@@ -307,7 +365,7 @@ export class AppComponent {
   public useShareOperator(): void {
     this.reset();
     this.setDescription(this.subjectDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     let subscription1: Subscription;
     let subscription2: Subscription;
@@ -338,7 +396,7 @@ export class AppComponent {
   public useBehaviorSubject(): void {
     this.reset();
     this.setDescription(this.behaviorSubjectDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     const subject = new BehaviorSubject(0); // 0 is the initial value
 
@@ -360,7 +418,7 @@ export class AppComponent {
   public useReplaySubject(): void {
     this.reset();
     this.setDescription(this.replaySubjectDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     const subject = new ReplaySubject(3); // buffer 3 values for new subscribers
 
@@ -383,7 +441,7 @@ export class AppComponent {
   public useAsyncSubject(): void {
     this.reset();
     this.setDescription(this.asyncSubjectDescription);
-    this.setElementVisibility(true, false, true);
+    this.setElementVisibility(true, false, true, true);
 
     const subject = new AsyncSubject();
 

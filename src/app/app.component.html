@@ -28,6 +28,13 @@
 <button (click)="showHotObservable()">Hot observable</button>
 <br>
 
+<span>Transformation operators - </span>
+<button (click)="useMap()">map</button>
+<button (click)="useConcatMap()">concatMap</button>
+<button (click)="useMergeMap()">mergeMap</button>
+<button (click)="useSwitchMap()">switchMap</button>
+<br>
+
 <span>Subject examples - </span>
 <button (click)="useUnicastObservable()">Observable (unicast)</button>
 <button (click)="useMulticastObservable()">Observable (multicast)</button>
@@ -37,7 +44,10 @@
 <br>
 
 <div [hidden]="hideDataStream">
-  Data stream: <span *ngFor="let value of dataStream">{{value}}, </span>
+  Data stream: <span *ngFor="let value of dataStream; let isLast=last">{{value}}{{isLast ? '' : ', '}}</span>
+</div>
+<div [hidden]="hideDataStream2">
+  Data stream 2: <span *ngFor="let value of dataStream2; let isLast=last">{{value}}{{isLast ? '' : ', '}}</span>
 </div>
 
 <div [hidden]="hideClickCounts">Total number of clicks events: {{clickCounts}}</div>
