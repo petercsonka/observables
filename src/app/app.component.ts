@@ -94,7 +94,7 @@ export class AppComponent {
   public useFrom(): void{
     this.reset();
     this.dataStream = this.defaultDataStream;
-    this.setDescription(this.ofDescription);
+    this.setDescription(this.fromDescription);
     this.setElementVisibility(false,false,false,false);
     this.observable$ = from(this.dataStream);
     this.observable$.pipe().subscribe((value: number) => this.emittedValues.push(value));
@@ -265,7 +265,6 @@ export class AppComponent {
 
   public reset(): void {
     this.hotHidden = true; this.coldHidden = true;
-    this.sub.unsubscribe();
     if(this.subscription) {
       this.subscription.unsubscribe();
     }
